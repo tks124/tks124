@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>密码安全检测系统 | 机密终端</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Consolas", "Courier New", monospace;
+        }
+        body{
+            background: #050709;
+            color: #00e6ff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-image: 
+                linear-gradient(rgba(0,230,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,230,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .terminal-box{
+            width: 100%;
+            max-width: 520px;
+            border: 1px solid #00e6ff;
+            box-shadow: 0 0 15px #00e6ff40, inset 0 0 10px #00e6ff20;
+            padding: 32px;
+            border-radius: 4px;
+            position: relative;
+            background: #0a0e14;
+        }
+        .terminal-box::before{
+            content: "【内部安全检测终端 - 权限等级：涉密】";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #050709;
+            padding: 2px 10px;
+            font-size: 12px;
+            color: #00e6ff;
+        }
+        .title{
+            font-size: 20px;
+            margin-bottom: 24px;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px #00e6ff;
+        }
+        .input-wrap{
+            margin-bottom: 20px;
+        }
+        .input-label{
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #72d8ff;
+        }
+        #pwd{
+            width: 100%;
+            background: #070b12;
+            border: 1px solid #00e6ff60;
+            outline: none;
+            padding: 14px 16px;
+            color: #00e6ff;
+            font-size: 16px;
+            border-radius: 2px;
+            transition: 0.2s;
+        }
+        #pwd:focus{
+            border-color: #00e6ff;
+            box-shadow: 0 0 8px #00e6ff50;
+        }
+        .progress-bar{
+            height: 6px;
+            width: 100%;
+            background: #111827;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 12px 0 20px;
+        }
+        .progress-fill{
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .result-panel{
+            line-height: 1.8;
+            font-size: 14px;
+            padding: 16px;
+            border: 1px dashed #00e6ff30;
+            background: #070b1280;
+        }
+        .weak{color:#ff3b30; text-shadow:0 0 5px #ff3b3070;}
+        .medium{color:#ffaa00; text-shadow:0 0 5px #ffaa0070;}
+        .strong{color:#00ff9d; text-shadow:0 0 5px #00ff9d70;}
+        .footer-tip{
+            margin-top: 20px;
+            font-size: 12px;
+            color: #00e6ff60;
+            text-align: center;
+        }
+        /* 扫描线动画，机密屏幕效果 */
+        @keyframes scan{
+            0%{background-position: 0 0;}
+            100%{background-position: 0 100px;}
+        }
+        .terminal-box::after{
+            content: "";
+            position: absolute;
+            top:0;left:0;right:0;bottom:0;
+            pointer-events: none;
+            background: linear-gradient(to bottom, transparent 0%, rgba(0,230,255,0.08) 50%, transparent 100%);
+            background-size: 100% 100px;
+            animation: scan 8s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="terminal-box">
+        <h2 class="title">密码安全强度评估系统</h2>
+        <div class="input-wrap">
+            <label class="input-label">请输入验证密码（禁止输入中文）</label>
+            <input type="password" id="pwd" autocomplete="off">
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress"></div>
+        </div>
+        <div class="result-panel" id="result">
+            等待密码输入...
+        </div>
+        <div class="footer-tip">所有检测运算均在本地终端执行，数据不上传外部服务器</div>
+    </div>
+
+<script>
+const pwdInput = document.getElementById('pwd');
+const progress = document.getElementById('progress');
+const result = document.getElementById('result');
+// 实时过滤中文，无法输入汉字
+pwdInput.addEventListener('input', function(){
+    this.value = this.value.replace(/[\u4e00-\u9fa5]/g, '');
+    checkPassword(this.value);
+});
+
+// 模拟高端显卡每秒破解算力
+const GUESS_PER_SEC = 10000000000;
+
+// 秒数转换为人类可读时间
+function formatTime(seconds){
+    if(seconds < 1) return "瞬间即可破解";
+    const minute = 60;
+    const hour = minute * 60;
+    const day = hour * 24;
+    const year = day * 365;
+    if(seconds < minute) return Math.floor(seconds)+" 秒";
+    if(seconds < hour) return Math.floor(seconds/minute)+" 分钟";
+    if(seconds < day) return Math.floor(seconds/hour)+" 小时";
+    if(seconds < year) return Math.floor(seconds/day)+" 天";
+    if(seconds < 1000 * year) return Math.floor(seconds/year)+" 年";
+    return "千年级别，几乎无法暴力破解";
+}
+
+function checkPassword(pwd){
+    if(pwd.length === 0){
+        progress.style.width = "0%";
+        progress.style.background = "#111827";
+        result.innerText = "等待密码输入...";
+        return;
+    }
+    // 判断字符类型
+    const hasLower = /[a-z]/.test(pwd);
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasNum = /[0-9]/.test(pwd);
+    const hasSymbol = /[^a-zA-Z0-9]/.test(pwd);
+    let typeCount = 0;
+    typeCount += hasLower ? 1 : 0;
+    typeCount += hasUpper ? 1 : 0;
+    typeCount += hasNum ? 1 : 0;
+    typeCount += hasSymbol ? 1 : 0;
+
+    // 字符池大小计算
+    let pool = 0;
+    if(hasLower) pool +=26;
+    if(hasUpper) pool +=26;
+    if(hasNum) pool +=10;
+    if(hasSymbol) pool +=32;
+
+    let entropy = pool > 0 ? pwd.length * Math.log2(pool) : 0;
+    const totalCombinations = Math.pow(2, entropy);
+    const crackSec = totalCombinations / GUESS_PER_SEC;
+    const timeStr = formatTime(crackSec);
+
+    let level, percent, color, className;
+    if(pwd.length < 8 || typeCount ===1){
+        level = "弱密码";
+        percent = 25;
+        color = "#ff3b30";
+        className = "weak";
+    }else if(typeCount ===2){
+        level = "中等密码";
+        percent = 60;
+        color = "#ffaa00";
+        className = "medium";
+    }else{
+        level = "强密码";
+        percent = 100;
+        color = "#00ff9d";
+        className = "strong";
+    }
+    progress.style.width = percent + "%";
+    progress.style.background = color;
+    result.innerHTML = `
+        密码强度：<span class="${className}">${level}</span><br>
+        预估暴力破解耗时：${timeStr}<br>
+        密码安全熵值：${entropy.toFixed(1)} bit
+    `;
+}
+</script>
+</body>
+</html>
