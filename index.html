@@ -137,9 +137,24 @@
     </div>
 
 <script>
+// ==========================================
+// 🔒 1. 验证拦截逻辑 (放在最前面)
+// ==========================================
+const AUTH_KEY = "sk124_auth_token";
+const AUTH_PAGE_URL = "https://tks124.github.io/tks/";
+
+window.onload = function() {
+    if (localStorage.getItem(AUTH_KEY) !== "true") {
+        window.location.replace(AUTH_PAGE_URL);
+    }
+};
+// ==========================================
+
+// 2. 原有的密码检测逻辑
 const pwdInput = document.getElementById('pwd');
 const progress = document.getElementById('progress');
 const result = document.getElementById('result');
+
 // 实时过滤中文，无法输入汉字
 pwdInput.addEventListener('input', function(){
     this.value = this.value.replace(/[\u4e00-\u9fa5]/g, '');
