@@ -104,7 +104,6 @@
             color: #00e6ff60;
             text-align: center;
         }
-        /* 扫描线动画，机密屏幕效果 */
         @keyframes scan{
             0%{background-position: 0 0;}
             100%{background-position: 0 100px;}
@@ -137,9 +136,6 @@
     </div>
 
 <script>
-// ==========================================
-// 🔒 1. 验证拦截逻辑 (放在最前面)
-// ==========================================
 const AUTH_KEY = "sk124_auth_token";
 const AUTH_PAGE_URL = "https://tks124.github.io/tks/";
 
@@ -148,23 +144,18 @@ window.onload = function() {
         window.location.replace(AUTH_PAGE_URL);
     }
 };
-// ==========================================
 
-// 2. 原有的密码检测逻辑
 const pwdInput = document.getElementById('pwd');
 const progress = document.getElementById('progress');
 const result = document.getElementById('result');
 
-// 实时过滤中文，无法输入汉字
 pwdInput.addEventListener('input', function(){
     this.value = this.value.replace(/[\u4e00-\u9fa5]/g, '');
     checkPassword(this.value);
 });
 
-// 模拟高端显卡每秒破解算力
 const GUESS_PER_SEC = 10000000000;
 
-// 秒数转换为人类可读时间
 function formatTime(seconds){
     if(seconds < 1) return "瞬间即可破解";
     const minute = 60;
@@ -186,7 +177,6 @@ function checkPassword(pwd){
         result.innerText = "等待密码输入...";
         return;
     }
-    // 判断字符类型
     const hasLower = /[a-z]/.test(pwd);
     const hasUpper = /[A-Z]/.test(pwd);
     const hasNum = /[0-9]/.test(pwd);
@@ -197,7 +187,6 @@ function checkPassword(pwd){
     typeCount += hasNum ? 1 : 0;
     typeCount += hasSymbol ? 1 : 0;
 
-    // 字符池大小计算
     let pool = 0;
     if(hasLower) pool +=26;
     if(hasUpper) pool +=26;
